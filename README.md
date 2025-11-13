@@ -1,2 +1,20 @@
 # log-consistency-audit
-Goal: check whether eth_getLogs results are identical across two RPC providers for the same filter, and produce a Keccak commitment over the log set.
+
+Compare `eth_getLogs` results across two RPC providers and produce a Keccak
+commitment over the log set.
+
+Useful for:
+
+- Detecting RPCs that drop or mis-index logs
+- Verifying L1/L2 / archive-node consistency
+- Auditing event history reproducibility
+
+---
+
+## Installation
+
+1. Python 3.9+
+2. Install dependencies:
+
+   ```bash
+   pip install web3
