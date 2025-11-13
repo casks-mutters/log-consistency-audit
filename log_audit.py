@@ -122,6 +122,7 @@ def main():
 
     print(f"📦 RPC A logs: {len(logs_a)}")
     print(f"📦 RPC B logs: {len(logs_b)}")
+        if len(logs_a) == len(logs_b) == 0: print("ℹ️ Both RPCs returned zero logs for this filter/range.")
 
     ok, diff = compare_logs(logs_a, logs_b)
 
