@@ -107,6 +107,8 @@ def main():
 
     wA = connect(rpcA)
     wB = connect(rpcB)
+        tip = wA.eth.block_number
+    if to_block > tip: print(f"⚠️ toBlock {to_block} > tip {tip} on RPC A; clamping."); to_block = tip
 
     print(f"🌐 RPC A: {rpcA} (chainId={wA.eth.chain_id})")
     print(f"🌐 RPC B: {rpcB} (chainId={wB.eth.chain_id})")
