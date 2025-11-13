@@ -98,6 +98,7 @@ def main():
     if from_block > to_block:
         from_block, to_block = to_block, from_block
         print("🔄 Swapped block range for ascending order.")
+            if to_block - from_block > 200_000: print("⚠️ Large block range — some providers may refuse or rate-limit getLogs.")
 
     if rpcA == rpcB:
         print("⚠️ rpcA and rpcB are identical — comparison may be meaningless.")
