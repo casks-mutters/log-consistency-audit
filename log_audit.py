@@ -46,6 +46,7 @@ def fetch_logs(w3: Web3, from_block: int, to_block: int, address: str, topic0: s
     try:
         logs = w3.eth.get_logs(flt)
     except Exception as e:
+        if "429" in str(e) or "rate" in str(e).lower(): time.sleep(1.0)
         print(f"⚠️ get_logs error on {w3.provider.endpoint_uri}: {e}")
         return []
     return [canonical_log(l) for l in logs]
