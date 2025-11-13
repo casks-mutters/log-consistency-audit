@@ -87,6 +87,7 @@ def main():
     from_block = int(sys.argv[1])
     to_block = int(sys.argv[2])
     address = sys.argv[3]
+        if address != "*" and not Web3.is_address(address): print("❌ Invalid address format."); sys.exit(2)
     topic0 = sys.argv[4]
     rpcA = sys.argv[5] if len(sys.argv) > 5 else DEFAULT_RPC_A
     rpcB = sys.argv[6] if len(sys.argv) > 6 else DEFAULT_RPC_B
