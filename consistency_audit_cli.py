@@ -38,6 +38,11 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Audit logs for per-ID state transition consistency."
     )
+    parser.add_argument(
+        "--fail-on-unknown-only",
+        action="store_true",
+        help="Exit non-zero only if unknown_state inconsistencies are found.",
+    )
 
     parser.add_argument(
         "--logs",
@@ -540,9 +545,15 @@ def main() -> None:
     else:
         render_human(events_by_id, inconsistencies)
 
-    if inconsistencies:
-        sys.exit(3)
-    sys.exit(0)
+     if not inconsistencies:
+        sys.exit(0)
+
+    if args.fail_on_unknown_only:
+        has_unknown = any(inc.type == "unknown_state" for inc in inconsistencies)
+        sys.exit(3 if has_unknown else 0)
+
+    sys.exit(3)
+
 
 
 if __name__ == "__main__":
