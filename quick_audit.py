@@ -56,6 +56,13 @@ def main() -> None:
             file=sys.stderr,
         )
         sys.exit(1)
+    if args.from_block > args.to_block:
+        print(
+            f"INFO: Swapping from-block ({args.from_block}) and to-block ({args.to_block}) "
+            "to ensure ascending order.",
+            file=sys.stderr,
+        )
+        args.from_block, args.to_block = args.to_block, args.from_block
 
     repo_dir = pathlib.Path(__file__).resolve().parent
     log_audit_path = repo_dir / "log_audit.py"
