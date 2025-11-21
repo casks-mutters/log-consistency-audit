@@ -45,6 +45,12 @@ def parse_args() -> argparse.Namespace:
         required=True,
         help="One or more log files (or glob patterns) to inspect.",
     )
+    parser.add_argument(
+        "--limit-inconsistencies",
+        type=int,
+        default=None,
+        help="If set, only show this many inconsistencies in text output.",
+    )
 
     parser.add_argument(
         "--format",
@@ -440,10 +446,16 @@ def render_human(
         print("✅ No inconsistencies found.")
         return
 
-    print("❌ Inconsistencies:")
+       print("❌ Inconsistencies:")
     print("-" * 80)
 
-    for i, inc in enumerate(inconsistencies, start=1):
+    limit = getattr(sys.modules[__name__], "_INC_LIMIT", None)  # see PR 20
+    inc_iter = inconsistencies
+    if limit is not None:
+        inc_iter = inconsistencies[:limit]
+
+    for i, inc in enumerate(inc_iter, start=1):
+
         print(f"[{i}] ID={inc.id_value} TYPE={inc.type}")
         print(f"    {inc.message}")
         for ev in inc.events:
@@ -537,8 +549,12 @@ def main() -> None:
 
     if args.json:
         render_json(events_by_id, inconsistencies)
-    else:
-        render_human(events_by_id, inconsistencies)
+     else:
+        if args.limit_inconsistencies is not None:
+            _INC_LIMIT = args.limit_inconsistencies  # type: ignore[var-annotated]
+        render_human(events_by_id, inconsistencies, summary_only=args.summary_only)
+
+
 
     if inconsistencies:
         sys.exit(3)
