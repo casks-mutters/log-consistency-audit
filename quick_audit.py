@@ -43,6 +43,9 @@ def main() -> None:
         nargs=argparse.REMAINDER,
         help="Any extra args to pass through to log_audit.py unchanged.",
     )
+    if args.from_block < 0 or args.to_block < 0:
+        print("ERROR: --from-block and --to-block must be >= 0.", file=sys.stderr)
+        sys.exit(1)
 
     args = parser.parse_args()
 
