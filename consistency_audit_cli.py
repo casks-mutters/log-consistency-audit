@@ -321,6 +321,10 @@ def build_state_order(allowed_order: str) -> Tuple[Dict[str, int], List[str]]:
     """
     states = [s.strip() for s in allowed_order.split(">") if s.strip()]
     order_map = {state: idx for idx, state in enumerate(states)}
+        if args.format == "json" and not args.id_field:
+        print("ERROR: --id-field must be non-empty when format=json.", file=sys.stderr)
+        sys.exit(1)
+
     return order_map, states
 
 
