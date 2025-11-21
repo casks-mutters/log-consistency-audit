@@ -45,6 +45,9 @@ def main() -> None:
     )
 
     args = parser.parse_args()
+    # If user separates extra args with `--`, argparse includes that as a literal
+    if args.extra and args.extra[0] == "--":
+        args.extra = args.extra[1:]
 
     rpc_a = args.rpc_a or os.getenv("LOG_RPC_A")
     rpc_b = args.rpc_b or os.getenv("LOG_RPC_B")
