@@ -86,8 +86,17 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("to_block", type=int, help="End block (inclusive)")
     p.add_argument("address", help="Contract address or '*' for any")
     p.add_argument("topic0", help="Topic0 (event signature) or '*' for any")
-    p.add_argument("--rpcA", default=DEFAULT_RPC_A, help="RPC URL for provider A")
-    p.add_argument("--rpcB", default=DEFAULT_RPC_B, help="RPC URL for provider B")
+       p.add_argument(
+        "--rpcA",
+        default=DEFAULT_RPC_A,
+        help="RPC URL for provider A (default from RPC_A env).",
+    )
+    p.add_argument(
+        "--rpcB",
+        default=DEFAULT_RPC_B,
+        help="RPC URL for provider B (default from RPC_B env).",
+    )
+
     return p
 
 
