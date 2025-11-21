@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os
+import argparse
 import sys
 import time
 import json
@@ -76,13 +77,31 @@ def compare_logs(logs_a: List[Dict[str, Any]], logs_b: List[Dict[str, Any]]):
         "firstDiff": first_diff,
     }
 
+def build_parser() -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(
+        description="Compare Ethereum logs between two RPC providers.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    p.add_argument("from_block", type=int, help="Start block (inclusive)")
+    p.add_argument("to_block", type=int, help="End block (inclusive)")
+    p.add_argument("address", help="Contract address or '*' for any")
+    p.add_argument("topic0", help="Topic0 (event signature) or '*' for any")
+    p.add_argument("--rpcA", default=DEFAULT_RPC_A, help="RPC URL for provider A")
+    p.add_argument("--rpcB", default=DEFAULT_RPC_B, help="RPC URL for provider B")
+    return p
+
+
 def main():
-    if len(sys.argv) < 5:
-        print("Usage:")
-        print("  python log_audit.py <fromBlock> <toBlock> <address|*> <topic0|*> [rpcA] [rpcB]")
-        print("Example:")
-        print("  python log_audit.py 19000000 19001000 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48 0xddf252ad...")
-        sys.exit(1)
+    parser = build_parser()
+    args = parser.parse_args()
+
+    from_block = args.from_block
+    to_block = args.to_block
+    address = args.address
+    topic0 = args.topic0
+    rpcA = args.rpcA
+    rpcB = args.rpcB
+
 
     from_block = int(sys.argv[1])
     to_block = int(sys.argv[2])
