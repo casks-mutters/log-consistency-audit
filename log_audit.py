@@ -116,7 +116,7 @@ def main():
 
     if from_block > to_block:
         from_block, to_block = to_block, from_block
-        print("🔄 Swapped block range for ascending order.")
+          print(f"🔄 Swapped block range to ascending order: [{from_block}, {to_block}]")
 
     if rpcA == rpcB:
         print("⚠️ rpcA and rpcB are identical — comparison may be meaningless.")
