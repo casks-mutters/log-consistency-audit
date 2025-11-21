@@ -141,6 +141,7 @@ def main():
 
     print(f"📦 RPC A logs: {len(logs_a)}")
     print(f"📦 RPC B logs: {len(logs_b)}")
+    print(f"📦 Total unique logs observed (A+B): {len(logs_a) + len(logs_b)}")
 
     ok, diff = compare_logs(logs_a, logs_b)
 
