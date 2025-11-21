@@ -45,6 +45,11 @@ def parse_args() -> argparse.Namespace:
         required=True,
         help="One or more log files (or glob patterns) to inspect.",
     )
+    parser.add_argument(
+        "--show-ids",
+        action="store_true",
+        help="Print the list of IDs discovered and exit (no audit).",
+    )
 
     parser.add_argument(
         "--format",
@@ -527,6 +532,11 @@ def main() -> None:
 
     if not events_by_id:
         print("WARNING: No events were parsed from the provided logs.", file=sys.stderr)
+    if args.show_ids:
+        print("IDs discovered:")
+        for idv in sorted(events_by_id.keys()):
+            print(f"  {idv}")
+        sys.exit(0)
 
     inconsistencies = audit_all_ids(
         events_by_id=events_by_id,
