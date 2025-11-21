@@ -155,4 +155,9 @@ def main():
     print(f"⏱️ Elapsed: {elapsed:.2f}s")
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\n🛑 Aborted by user.", file=sys.stderr)
+        sys.exit(1)
+
