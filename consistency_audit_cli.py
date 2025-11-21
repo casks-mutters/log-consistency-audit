@@ -11,7 +11,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Iterable, Tuple
 
-
+__version__ = "0.1.0"
 ISO8601_FMT = "%Y-%m-%dT%H:%M:%S%z"
 ISO8601_Z_FMT = "%Y-%m-%dT%H:%M:%SZ"
 
@@ -37,6 +37,12 @@ class Inconsistency:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Audit logs for per-ID state transition consistency."
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {__version__}",
+        help="Show program version and exit.",
     )
 
     parser.add_argument(
