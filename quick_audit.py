@@ -86,7 +86,12 @@ def main() -> None:
     cmd += args.extra
 
     print(">> Running:", " ".join(cmd), file=sys.stderr)
-    result = subprocess.run(cmd)
+     result = subprocess.run(cmd)
+    if result.returncode != 0:
+        print(
+            f"log_audit.py exited with code {result.returncode}",
+            file=sys.stderr,
+        )
     sys.exit(result.returncode)
 
 
