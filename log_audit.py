@@ -98,6 +98,8 @@ def main():
     from_block = args.from_block
     to_block = args.to_block
     address = args.address
+        if address != "*" and not address.startswith("0x"):
+        print("⚠️ Address does not start with 0x; did you mean to use a hex address?", file=sys.stderr)
     topic0 = args.topic0
     rpcA = args.rpcA
     rpcB = args.rpcB
