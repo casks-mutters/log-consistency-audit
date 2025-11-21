@@ -133,7 +133,8 @@ def main():
     if wA.eth.chain_id != wB.eth.chain_id:
         print("⚠️ chainId mismatch between RPC A and B — logs are not comparable.")
 
-    print(f"🔍 Fetching logs from blocks [{from_block}, {to_block}]…")
+      span = to_block - from_block + 1
+    print(f"🔍 Fetching logs from blocks [{from_block}, {to_block}] (span={span} blocks)…")
     t0 = time.monotonic()
     logs_a = fetch_logs(wA, from_block, to_block, address, topic0)
     logs_b = fetch_logs(wB, from_block, to_block, address, topic0)
