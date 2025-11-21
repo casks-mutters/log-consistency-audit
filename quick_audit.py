@@ -18,6 +18,12 @@ def main() -> None:
         "--rpc-b",
         help="Second RPC URL (defaults to $LOG_RPC_B).",
     )
+        parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print the constructed log_audit.py command and exit without running it.",
+    )
+
     parser.add_argument(
         "--from-block",
         type=int,
@@ -86,6 +92,11 @@ def main() -> None:
     cmd += args.extra
 
     print(">> Running:", " ".join(cmd), file=sys.stderr)
+
+    if args.dry_run:
+        # Don't actually run log_audit.py, just show the command.
+        sys.exit(0)
+
     result = subprocess.run(cmd)
     sys.exit(result.returncode)
 
