@@ -38,6 +38,12 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Audit logs for per-ID state transition consistency."
     )
+    parser.add_argument(
+        "--min-events-per-id",
+        type=int,
+        default=1,
+        help="Only audit IDs that have at least this many events.",
+    )
 
     parser.add_argument(
         "--logs",
@@ -403,6 +409,12 @@ def audit_id_sequence(
 
     return inconsistencies
 
+    if args.min_events_per_id > 1:
+        events_by_id = {
+            idv: evs
+            for idv, evs in events_by_id.items()
+            if len(evs) >= args.min_events_per_id
+        }
 
 def audit_all_ids(
     events_by_id: Dict[str, List[LogEvent]],
