@@ -82,8 +82,8 @@ def build_parser() -> argparse.ArgumentParser:
         description="Compare Ethereum logs between two RPC providers.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    p.add_argument("from_block", type=int, help="Start block (inclusive)")
-    p.add_argument("to_block", type=int, help="End block (inclusive)")
+       p.add_argument("from_block", help="Start block number or 'latest'")
+    p.add_argument("to_block", help="End block number or 'latest'")
     p.add_argument("address", help="Contract address or '*' for any")
     p.add_argument("topic0", help="Topic0 (event signature) or '*' for any")
     p.add_argument("--rpcA", default=DEFAULT_RPC_A, help="RPC URL for provider A")
@@ -94,6 +94,12 @@ def build_parser() -> argparse.ArgumentParser:
 def main():
     parser = build_parser()
     args = parser.parse_args()
+
+    def parse_block(b: str) -> int:
+        if b == "latest":
+            # will be overwritten per-RPC? For now use RPC A
+            return wA.eth.block_number  # requires connect earlier, or see next PR
+        return int(b)
 
     from_block = args.from_block
     to_block = args.to_block
