@@ -527,6 +527,9 @@ def main() -> None:
 
     if not events_by_id:
         print("WARNING: No events were parsed from the provided logs.", file=sys.stderr)
+        if not args.json:
+            print("No events to audit.")
+        # still continue; exit-code logic will handle it
 
     inconsistencies = audit_all_ids(
         events_by_id=events_by_id,
