@@ -14,6 +14,11 @@ def main() -> None:
         "--rpc-a",
         help="First RPC URL (defaults to $LOG_RPC_A).",
     )
+        parser.add_argument(
+        "--log-audit-path",
+        help="Override path to log_audit.py (defaults to file next to quick_audit.py).",
+    )
+
     parser.add_argument(
         "--rpc-b",
         help="Second RPC URL (defaults to $LOG_RPC_B).",
@@ -58,7 +63,11 @@ def main() -> None:
         sys.exit(1)
 
     repo_dir = pathlib.Path(__file__).resolve().parent
-    log_audit_path = repo_dir / "log_audit.py"
+    if args.log_audit_path:
+        log_audit_path = pathlib.Path(args.log_audit_path)
+    else:
+        log_audit_path = repo_dir / "log_audit.py"
+
 
     if not log_audit_path.is_file():
         print(f"ERROR: log_audit.py not found next to {__file__}", file=sys.stderr)
