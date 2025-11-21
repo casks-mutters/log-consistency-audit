@@ -7,6 +7,7 @@ import json
 from typing import Any, Dict, List
 from web3 import Web3
 
+__version__ = "0.1.0"
 DEFAULT_RPC_A = os.getenv("RPC_A", "https://mainnet.infura.io/v3/your_api_key")
 DEFAULT_RPC_B = os.getenv("RPC_B", "https://eth.llamarpc.com")
 
@@ -81,6 +82,12 @@ def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         description="Compare Ethereum logs between two RPC providers.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+        p.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {__version__}",
+        help="Show program version and exit",
     )
     p.add_argument("from_block", type=int, help="Start block (inclusive)")
     p.add_argument("to_block", type=int, help="End block (inclusive)")
