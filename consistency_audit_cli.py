@@ -45,6 +45,11 @@ def parse_args() -> argparse.Namespace:
         required=True,
         help="One or more log files (or glob patterns) to inspect.",
     )
+    parser.add_argument(
+        "--strict-order",
+        action="store_true",
+        help="If set, treat skipped states as an inconsistency; otherwise only detect regressions.",
+    )
 
     parser.add_argument(
         "--format",
