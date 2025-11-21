@@ -175,7 +175,14 @@ def parse_timestamp(raw: str, mode: str) -> Optional[datetime]:
 
     # auto
     # try multiple common formats
-    for fmt in (ISO8601_FMT, ISO8601_Z_FMT, "%Y-%m-%d %H:%M:%S", "%Y-%m-%d %H:%M:%S%z"):
+     for fmt in (
+        ISO8601_FMT,
+        ISO8601_Z_FMT,
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%m-%d %H:%M:%S%z",
+        "%Y-%m-%d",
+    ):
+
         try:
             return datetime.strptime(raw, fmt)
         except ValueError:
