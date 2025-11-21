@@ -5,8 +5,10 @@ import pathlib
 import subprocess
 import sys
 
+__version__ = "0.1.0"
 
 def main() -> None:
+    
     parser = argparse.ArgumentParser(
         description="Quick wrapper around log_audit.py with env-based RPC defaults."
     )
@@ -42,6 +44,12 @@ def main() -> None:
         "extra",
         nargs=argparse.REMAINDER,
         help="Any extra args to pass through to log_audit.py unchanged.",
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {__version__}",
+        help="Show program version and exit.",
     )
 
     args = parser.parse_args()
