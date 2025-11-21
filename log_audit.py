@@ -89,6 +89,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--rpcA", default=DEFAULT_RPC_A, help="RPC URL for provider A")
     p.add_argument("--rpcB", default=DEFAULT_RPC_B, help="RPC URL for provider B")
     return p
+    
+def short_url(url: str, max_len: int = 70) -> str:
+    if len(url) <= max_len:
+        return url
+    return f"{url[:40]}…{url[-20:]}"
 
 
 def main():
@@ -127,8 +132,8 @@ def main():
     wA = connect(rpcA)
     wB = connect(rpcB)
 
-    print(f"🌐 RPC A: {rpcA} (chainId={wA.eth.chain_id})")
-    print(f"🌐 RPC B: {rpcB} (chainId={wB.eth.chain_id})")
+    print(f"🌐 RPC A: {short_url(rpcA)} (chainId={wA.eth.chain_id})")
+    print(f"🌐 RPC B: {short_url(rpcB)} (chainId={wB.eth.chain_id})")
 
     if wA.eth.chain_id != wB.eth.chain_id:
         print("⚠️ chainId mismatch between RPC A and B — logs are not comparable.")
