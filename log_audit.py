@@ -52,8 +52,13 @@ def fetch_logs(w3: Web3, from_block: int, to_block: int, address: str, topic0: s
     return [canonical_log(l) for l in logs]
 
 def compare_logs(logs_a: List[Dict[str, Any]], logs_b: List[Dict[str, Any]]):
+      # Normalize ordering to avoid RPC-specific ordering differences
+    logs_a = sorted(logs_a, key=lambda l: (l["blockNumber"], l["transactionIndex"], l["logIndex"]))
+    logs_b = sorted(logs_b, key=lambda l: (l["blockNumber"], l["transactionIndex"], l["logIndex"]))
+
     if logs_a == logs_b:
         return True, None
+
 
     root_a = keccak_json(logs_a)
     root_b = keccak_json(logs_b)
