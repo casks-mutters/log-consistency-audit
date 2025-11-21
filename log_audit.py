@@ -82,6 +82,11 @@ def build_parser() -> argparse.ArgumentParser:
         description="Compare Ethereum logs between two RPC providers.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
+        p.add_argument(
+        "--json",
+        action="store_true",
+        help="Print only a JSON summary (no human-readable lines).",
+    )
     p.add_argument("from_block", type=int, help="Start block (inclusive)")
     p.add_argument("to_block", type=int, help="End block (inclusive)")
     p.add_argument("address", help="Contract address or '*' for any")
@@ -144,6 +149,19 @@ def main():
 
     ok, diff = compare_logs(logs_a, logs_b)
 
+    if args.json:
+        out = {
+            "rpcA": short_url(rpcA),
+            "rpcB": short_url(rpcB),
+            "fromBlock": from_block,
+            "toBlock": to_block,
+            "match": ok,
+            "diff": diff,
+            "elapsedSec": round(elapsed, 3),
+        }
+        print(json.dumps(out, indent=2, sort_keys=True))
+        sys.exit(0 if ok else 1)
+
     if ok:
         root_logs = keccak_json(logs_a)
         print("✅ Logs match exactly across both providers.")
@@ -153,6 +171,7 @@ def main():
         print(json.dumps(diff, indent=2))
 
     print(f"⏱️ Elapsed: {elapsed:.2f}s")
+
 
 if __name__ == "__main__":
     main()
