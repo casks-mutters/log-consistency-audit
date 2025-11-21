@@ -144,15 +144,19 @@ def main():
 
     ok, diff = compare_logs(logs_a, logs_b)
 
-    if ok:
+     if ok:
         root_logs = keccak_json(logs_a)
         print("✅ Logs match exactly across both providers.")
         print(f"🔏 Log set root: {root_logs}")
+        exit_code = 0
     else:
         print("❌ Log divergence detected!")
         print(json.dumps(diff, indent=2))
+        exit_code = 1
 
     print(f"⏱️ Elapsed: {elapsed:.2f}s")
+    sys.exit(exit_code)
+
 
 if __name__ == "__main__":
     main()
