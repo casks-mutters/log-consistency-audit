@@ -7,9 +7,11 @@ import sys
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Quick wrapper around log_audit.py with env-based RPC defaults."
+      parser = argparse.ArgumentParser(
+        description="Quick wrapper around log_audit.py with env-based RPC defaults.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
+
     parser.add_argument(
         "--rpc-a",
         help="First RPC URL (defaults to $LOG_RPC_A).",
