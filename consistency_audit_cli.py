@@ -38,6 +38,11 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Audit logs for per-ID state transition consistency."
     )
+    parser.add_argument(
+        "--summary-only",
+        action="store_true",
+        help="Only print summary counts in text mode (no detailed inconsistencies).",
+    )
 
     parser.add_argument(
         "--logs",
@@ -439,6 +444,10 @@ def render_human(
     if not inconsistencies:
         print("✅ No inconsistencies found.")
         return
+
+    # If summary-only is enabled, stop here (no details)
+    # (we'll pass a flag through main in PR 5)
+
 
     print("❌ Inconsistencies:")
     print("-" * 80)
