@@ -476,15 +476,16 @@ def render_json(
             "total_events": sum(len(v) for v in events_by_id.values()),
             "total_inconsistencies": len(inconsistencies),
         },
-        "inconsistencies": [
+          "inconsistencies": [
             {
                 "id": inc.id_value,
                 "type": inc.type,
                 "message": inc.message,
                 "events": [ev_to_dict(ev) for ev in inc.events],
             }
-            for inc in inconsistencies
+            for inc in sorted(inconsistencies, key=lambda i: (i.id_value, i.type))
         ],
+
     }
     json.dump(payload, sys.stdout, indent=2, sort_keys=True)
     sys.stdout.write("\n")
