@@ -46,8 +46,11 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    rpc_a = args.rpc_a or os.getenv("LOG_RPC_A")
-    rpc_b = args.rpc_b or os.getenv("LOG_RPC_B")
+       source_a = "--rpc-a" if args.rpc_a else "LOG_RPC_A"
+    source_b = "--rpc-b" if args.rpc_b else "LOG_RPC_B"
+    print(f"Using RPC A from {source_a}", file=sys.stderr)
+    print(f"Using RPC B from {source_b}", file=sys.stderr)
+
 
     if not rpc_a or not rpc_b:
         print(
