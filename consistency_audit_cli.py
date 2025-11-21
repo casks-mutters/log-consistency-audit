@@ -527,6 +527,22 @@ def main() -> None:
 
     if not events_by_id:
         print("WARNING: No events were parsed from the provided logs.", file=sys.stderr)
+    if args.max_ids is not None and len(events_by_id) >= args.max_ids:
+        print(
+            f"WARNING: Reached max-ids limit ({args.max_ids}); additional IDs were ignored.",
+            file=sys.stderr,
+        )
+    if args.max_events_per_id is not None:
+        truncated_ids = [
+            idv for idv, evs in events_by_id.items()
+            if len(evs) >= args.max_events_per_id
+        ]
+        if truncated_ids:
+            print(
+                f"WARNING: max-events-per-id={args.max_events_per_id} reached "
+                f"for {len(truncated_ids)} ID(s).",
+                file=sys.stderr,
+            )
 
     inconsistencies = audit_all_ids(
         events_by_id=events_by_id,
