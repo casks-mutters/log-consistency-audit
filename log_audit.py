@@ -101,6 +101,8 @@ def main():
     topic0 = args.topic0
     rpcA = args.rpcA
     rpcB = args.rpcB
+    if topic0 != "*" and not (topic0.startswith("0x") and len(topic0) == 66):
+        print("⚠️ topic0 does not look like a 32-byte topic (0x + 64 hex).", file=sys.stderr)
 
 
     from_block = int(sys.argv[1])
