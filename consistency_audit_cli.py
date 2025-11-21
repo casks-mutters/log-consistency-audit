@@ -98,6 +98,15 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Ignore duplicate consecutive states for the same ID.",
     )
+    parser.add_argument(
+        "--allowed-order",
+        required=True,
+        help=(
+            "Allowed state order, e.g. 'NEW>RUNNING>DONE'. "
+            "States not present here are treated as 'unknown_state'. "
+            "Use '>' as a strict ordering separator."
+        ),
+    )
 
     parser.add_argument(
         "--json",
