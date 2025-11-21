@@ -38,6 +38,11 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Audit logs for per-ID state transition consistency."
     )
+    parser.add_argument(
+        "--sort-ids",
+        action="store_true",
+        help="Sort IDs alphabetically in JSON summary (does not affect human output).",
+    )
 
     parser.add_argument(
         "--logs",
