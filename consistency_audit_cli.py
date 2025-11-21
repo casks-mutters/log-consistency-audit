@@ -1,4 +1,11 @@
 #!/usr/bin/env python3
+"""
+log_state_auditor.py — Audit per-ID state transitions in logs (JSON or text).
+
+Checks that events for the same logical ID follow an allowed state order,
+and flags regressions, unknown states, and skipped states.
+"""
+
 from __future__ import annotations
 
 import argparse
