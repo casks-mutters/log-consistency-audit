@@ -30,7 +30,7 @@ def canonical_log(log: Dict[str, Any]) -> Dict[str, Any]:
         "transactionIndex": int(log.get("transactionIndex", 0)),
         "logIndex": int(log.get("logIndex", 0)),
         "data": log.get("data"),
-        "topics": list(log.get("topics", [])),
+               "topics": list(log.get("topics", [])),
     }
     return keep
 
