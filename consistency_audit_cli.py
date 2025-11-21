@@ -11,6 +11,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Iterable, Tuple
 
+    events_by_id: Dict[str, List[LogEvent]] = defaultdict(list)
+    stopped_ids = set()
+    total_lines = 0
+    parsed_lines = 0
 
 ISO8601_FMT = "%Y-%m-%dT%H:%M:%S%z"
 ISO8601_Z_FMT = "%Y-%m-%dT%H:%M:%SZ"
@@ -197,8 +201,11 @@ def read_json_logs(
 
     for path in paths:
         with path.open("r", encoding="utf-8") as f:
-            for line_no, line in enumerate(f, start=1):
-                line = line.rstrip("\n")
+                if id_value is None or state is None:
+                    continue
+
+                parsed_lines += 1
+
 
                 if max_ids is not None and len(events_by_id) >= max_ids:
                     # Already reached max IDs; still allow events for already-seen IDs.
@@ -239,6 +246,10 @@ def read_json_logs(
                         state=state,
                     )
                 )
+    print(
+        f"Parsed {parsed_lines}/{total_lines} JSON lines from {len(paths)} file(s).",
+        file=sys.stderr,
+    )
 
     return events_by_id
 
