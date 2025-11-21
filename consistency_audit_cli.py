@@ -14,6 +14,7 @@ from typing import Dict, List, Optional, Any, Iterable, Tuple
 
 ISO8601_FMT = "%Y-%m-%dT%H:%M:%S%z"
 ISO8601_Z_FMT = "%Y-%m-%dT%H:%M:%SZ"
+EventsById =  Dict[str, List[LogEvent]]:
 
 
 @dataclasses.dataclass
