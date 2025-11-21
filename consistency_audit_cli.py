@@ -35,9 +35,11 @@ class Inconsistency:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Audit logs for per-ID state transition consistency."
+      parser = argparse.ArgumentParser(
+        description="Audit logs for per-ID state transition consistency.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
+
 
     parser.add_argument(
         "--logs",
