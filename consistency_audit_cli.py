@@ -38,6 +38,10 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Audit logs for per-ID state transition consistency."
     )
+    parser.add_argument(
+        "--id-regex",
+        help="Only include IDs that match this regex (applied to the ID string).",
+    )
 
     parser.add_argument(
         "--logs",
@@ -409,9 +413,13 @@ def audit_all_ids(
     order_map: Dict[str, int],
     allowed_states: List[str],
     ignore_duplicates: bool,
+    id_filter: Optional[re.Pattern[str]] = None,
 ) -> List[Inconsistency]:
+
     all_inconsistencies: List[Inconsistency] = []
-    for id_value, events in events_by_id.items():
+      for id_value, events in events_by_id.items():
+        if id_filter is not None and not id_filter.search(id_value):
+            continue
         incs = audit_id_sequence(
             id_value=id_value,
             events=events,
@@ -492,6 +500,9 @@ def render_json(
 
 def main() -> None:
     args = parse_args()
+    id_filter_re: Optional[re.Pattern[str]] = None
+    if args.id_regex:
+        id_filter_re = re.compile(args.id_regex)
 
     paths = expand_files(args.logs)
     if not paths:
@@ -528,12 +539,14 @@ def main() -> None:
     if not events_by_id:
         print("WARNING: No events were parsed from the provided logs.", file=sys.stderr)
 
-    inconsistencies = audit_all_ids(
+     inconsistencies = audit_all_ids(
         events_by_id=events_by_id,
         order_map=order_map,
         allowed_states=ordered_states,
         ignore_duplicates=args.ignore_duplicates,
+        id_filter=id_filter_re,
     )
+
 
     if args.json:
         render_json(events_by_id, inconsistencies)
