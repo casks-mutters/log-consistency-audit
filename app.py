@@ -1,51 +1,4 @@
 #!/usr/bin/env python3
-"""
-consistency_audit_cli.py
-
-Companion tool for the log-consistency-audit repo.
-
-This script inspects logs for *per-request* or *per-session* consistency:
-  - Reads one or more log files (JSON lines or plain text)
-  - Groups log entries by a correlation ID (or any key)
-  - Checks that state transitions follow an allowed order (e.g. NEW -> RUNNING -> DONE)
-  - Emits a human-readable or JSON report of inconsistencies
-
-Example usage:
-
-  # Simple JSON lines logs:
-  # {"ts": "2025-11-21T13:05:12Z", "request_id": "abc", "state": "NEW"}
-  # {"ts": "2025-11-21T13:05:14Z", "request_id": "abc", "state": "RUNNING"}
-  # {"ts": "2025-11-21T13:05:18Z", "request_id": "abc", "state": "DONE"}
-
-  python consistency_audit_cli.py \
-      --logs app.log \
-      --format json \
-      --id-field request_id \
-      --state-field state \
-      --timestamp-field ts \
-      --allowed-order "NEW>RUNNING>DONE"
-
-  # Plain-text logs, extracting fields via regex:
-  # 2025-11-21T13:05:12Z [request_id=abc] state=NEW detail=...
-  # 2025-11-21T13:05:14Z [request_id=abc] state=RUNNING detail=...
-  # 2025-11-21T13:05:18Z [request_id=abc] state=DONE detail=...
-
-  python consistency_audit_cli.py \
-      --logs app.log \
-      --format text \
-      --regex-timestamp '(?P<ts>\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z)' \
-      --regex-id 'request_id=(?P<id>[a-zA-Z0-9_-]+)' \
-      --regex-state 'state=(?P<state>[A-Z_]+)' \
-      --allowed-order "NEW>RUNNING>DONE" \
-      --json
-
-Exit codes:
-  0 = audit passed, no inconsistencies found
-  1 = configuration / argument error
-  2 = failed to read / parse logs
-  3 = inconsistencies found
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -261,4 +214,336 @@ def read_json_logs(
                 state = obj.get(state_field)
                 ts_raw = obj.get(ts_field)
 
-                if id_value is None or stat_
+                if id_value is None or state is None:
+                    continue
+
+                id_value = str(id_value)
+                state = str(state)
+
+                if max_ids is not None and id_value not in events_by_id and len(events_by_id) >= max_ids:
+                    stopped_ids.add(id_value)
+                    continue
+
+                if max_events_per_id is not None and len(events_by_id[id_value]) >= max_events_per_id:
+                    continue
+
+                ts = parse_timestamp(str(ts_raw), ts_mode)
+
+                events_by_id[id_value].append(
+                    LogEvent(
+                        raw_line=line,
+                        source_file=str(path),
+                        line_no=line_no,
+                        timestamp=ts,
+                        id_value=id_value,
+                        state=state,
+                    )
+                )
+
+    return events_by_id
+
+
+def compile_optional(pattern: Optional[str]) -> Optional[re.Pattern]:
+    if not pattern:
+        return None
+    return re.compile(pattern)
+
+
+def read_text_logs(
+    paths: List[Path],
+    regex_ts: Optional[str],
+    regex_id: str,
+    regex_state: str,
+    ts_mode: str,
+    max_ids: Optional[int],
+    max_events_per_id: Optional[int],
+) -> Dict[str, List[LogEvent]]:
+    re_ts = compile_optional(regex_ts)
+    re_id = compile_optional(regex_id)
+    re_state = compile_optional(regex_state)
+
+    if re_id is None or re_state is None:
+        print("ERROR: --regex-id and --regex-state are required for format=text", file=sys.stderr)
+        sys.exit(1)
+
+    events_by_id: Dict[str, List[LogEvent]] = defaultdict(list)
+
+    for path in paths:
+        with path.open("r", encoding="utf-8") as f:
+            for line_no, line in enumerate(f, start=1):
+                line = line.rstrip("\n")
+
+                m_id = re_id.search(line)
+                m_state = re_state.search(line)
+
+                if not m_id or not m_state:
+                    continue
+
+                id_value = m_id.groupdict().get("id") or m_id.group(1)
+                state = m_state.groupdict().get("state") or m_state.group(1)
+
+                if id_value is None or state is None:
+                    continue
+
+                id_value = str(id_value)
+                state = str(state)
+
+                if max_ids is not None and id_value not in events_by_id and len(events_by_id) >= max_ids:
+                    continue
+
+                if max_events_per_id is not None and len(events_by_id[id_value]) >= max_events_per_id:
+                    continue
+
+                ts = None
+                if re_ts is not None:
+                    m_ts = re_ts.search(line)
+                    if m_ts:
+                        ts_raw = m_ts.groupdict().get("ts") or m_ts.group(0)
+                        ts = parse_timestamp(str(ts_raw), ts_mode)
+
+                events_by_id[id_value].append(
+                    LogEvent(
+                        raw_line=line,
+                        source_file=str(path),
+                        line_no=line_no,
+                        timestamp=ts,
+                        id_value=id_value,
+                        state=state,
+                    )
+                )
+
+    return events_by_id
+
+
+def build_state_order(allowed_order: str) -> Tuple[Dict[str, int], List[str]]:
+    """
+    Parse a 'A>B>C' string into state -> order index map.
+    """
+    states = [s.strip() for s in allowed_order.split(">") if s.strip()]
+    order_map = {state: idx for idx, state in enumerate(states)}
+    return order_map, states
+
+
+def audit_id_sequence(
+    id_value: str,
+    events: List[LogEvent],
+    order_map: Dict[str, int],
+    allowed_states: List[str],
+    ignore_duplicates: bool,
+) -> List[Inconsistency]:
+    inconsistencies: List[Inconsistency] = []
+
+    # Sort events by timestamp if available; otherwise keep original order
+    events_sorted = sorted(
+        events,
+        key=lambda e: (e.timestamp or datetime.min, e.line_no),
+    )
+
+    last_order_idx: Optional[int] = None
+    last_state: Optional[str] = None
+
+    for ev in events_sorted:
+        state = ev.state
+
+        if state not in order_map:
+            inconsistencies.append(
+                Inconsistency(
+                    id_value=id_value,
+                    type="unknown_state",
+                    message=f"Unknown state '{state}' for id={id_value}",
+                    events=[ev],
+                )
+            )
+            # unknown state: we don't update last_order_idx / last_state
+            continue
+
+        curr_idx = order_map[state]
+
+        # Duplicate
+        if last_state == state:
+            if not ignore_duplicates:
+                inconsistencies.append(
+                    Inconsistency(
+                        id_value=id_value,
+                        type="duplicate_state",
+                        message=f"Duplicate state '{state}' for id={id_value}",
+                        events=[ev],
+                    )
+                )
+        else:
+            if last_order_idx is not None and curr_idx < last_order_idx:
+                inconsistencies.append(
+                    Inconsistency(
+                        id_value=id_value,
+                        type="regression",
+                        message=(
+                            f"State regression for id={id_value}: "
+                            f"'{last_state}' -> '{state}'"
+                        ),
+                        events=[ev],
+                    )
+                )
+
+            if last_order_idx is not None and curr_idx > last_order_idx + 1:
+                missing_states = allowed_states[last_order_idx + 1 : curr_idx]
+                inconsistencies.append(
+                    Inconsistency(
+                        id_value=id_value,
+                        type="skipped_state",
+                        message=(
+                            f"Skipped states for id={id_value}: "
+                            f"{' > '.join(missing_states)} (jumped to '{state}')"
+                        ),
+                        events=[ev],
+                    )
+                )
+
+        last_order_idx = curr_idx
+        last_state = state
+
+    return inconsistencies
+
+
+def audit_all_ids(
+    events_by_id: Dict[str, List[LogEvent]],
+    order_map: Dict[str, int],
+    allowed_states: List[str],
+    ignore_duplicates: bool,
+) -> List[Inconsistency]:
+    all_inconsistencies: List[Inconsistency] = []
+    for id_value, events in events_by_id.items():
+        incs = audit_id_sequence(
+            id_value=id_value,
+            events=events,
+            order_map=order_map,
+            allowed_states=allowed_states,
+            ignore_duplicates=ignore_duplicates,
+        )
+        all_inconsistencies.extend(incs)
+    return all_inconsistencies
+
+
+def render_human(
+    events_by_id: Dict[str, List[LogEvent]],
+    inconsistencies: List[Inconsistency],
+) -> None:
+    total_ids = len(events_by_id)
+    total_events = sum(len(v) for v in events_by_id.values())
+    total_incs = len(inconsistencies)
+
+    print(f"Total IDs: {total_ids}")
+    print(f"Total events: {total_events}")
+    print(f"Total inconsistencies: {total_incs}")
+    print()
+
+    if not inconsistencies:
+        print("✅ No inconsistencies found.")
+        return
+
+    print("❌ Inconsistencies:")
+    print("-" * 80)
+
+    for i, inc in enumerate(inconsistencies, start=1):
+        print(f"[{i}] ID={inc.id_value} TYPE={inc.type}")
+        print(f"    {inc.message}")
+        for ev in inc.events:
+            ts_str = ev.timestamp.isoformat() if ev.timestamp else "NA"
+            print(
+                f"    at {ev.source_file}:{ev.line_no} "
+                f"ts={ts_str} state={ev.state}"
+            )
+            print(f"      line: {ev.raw_line}")
+        print("-" * 80)
+
+
+def render_json(
+    events_by_id: Dict[str, List[LogEvent]],
+    inconsistencies: List[Inconsistency],
+) -> None:
+    def ev_to_dict(ev: LogEvent) -> Dict[str, Any]:
+        return {
+            "source_file": ev.source_file,
+            "line_no": ev.line_no,
+            "timestamp": ev.timestamp.isoformat() if ev.timestamp else None,
+            "id": ev.id_value,
+            "state": ev.state,
+            "raw_line": ev.raw_line,
+        }
+
+    payload = {
+        "summary": {
+            "total_ids": len(events_by_id),
+            "total_events": sum(len(v) for v in events_by_id.values()),
+            "total_inconsistencies": len(inconsistencies),
+        },
+        "inconsistencies": [
+            {
+                "id": inc.id_value,
+                "type": inc.type,
+                "message": inc.message,
+                "events": [ev_to_dict(ev) for ev in inc.events],
+            }
+            for inc in inconsistencies
+        ],
+    }
+    json.dump(payload, sys.stdout, indent=2, sort_keys=True)
+    sys.stdout.write("\n")
+
+
+def main() -> None:
+    args = parse_args()
+
+    paths = expand_files(args.logs)
+    if not paths:
+        print("ERROR: no log files matched the provided patterns.", file=sys.stderr)
+        sys.exit(1)
+
+    order_map, ordered_states = build_state_order(args.allowed_order)
+    if not order_map:
+        print("ERROR: --allowed-order produced no valid states.", file=sys.stderr)
+        sys.exit(1)
+
+    # Read logs
+    if args.format == "json":
+        events_by_id = read_json_logs(
+            paths=paths,
+            id_field=args.id_field,
+            state_field=args.state_field,
+            ts_field=args.timestamp_field,
+            ts_mode=args.timestamp_format,
+            max_ids=args.max_ids,
+            max_events_per_id=args.max_events_per_id,
+        )
+    else:
+        events_by_id = read_text_logs(
+            paths=paths,
+            regex_ts=args.regex_timestamp,
+            regex_id=args.regex_id,
+            regex_state=args.regex_state,
+            ts_mode=args.timestamp_format,
+            max_ids=args.max_ids,
+            max_events_per_id=args.max_events_per_id,
+        )
+
+    if not events_by_id:
+        print("WARNING: No events were parsed from the provided logs.", file=sys.stderr)
+
+    inconsistencies = audit_all_ids(
+        events_by_id=events_by_id,
+        order_map=order_map,
+        allowed_states=ordered_states,
+        ignore_duplicates=args.ignore_duplicates,
+    )
+
+    if args.json:
+        render_json(events_by_id, inconsistencies)
+    else:
+        render_human(events_by_id, inconsistencies)
+
+    if inconsistencies:
+        sys.exit(3)
+    sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()
