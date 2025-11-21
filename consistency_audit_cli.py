@@ -45,6 +45,11 @@ def parse_args() -> argparse.Namespace:
         required=True,
         help="One or more log files (or glob patterns) to inspect.",
     )
+    parser.add_argument(
+        "--stats-only",
+        action="store_true",
+        help="Only compute and print summary stats, skip detailed audit per ID.",
+    )
 
     parser.add_argument(
         "--format",
@@ -402,6 +407,20 @@ def audit_id_sequence(
         last_state = state
 
     return inconsistencies
+    if args.stats_only:
+        total_ids = len(events_by_id)
+        total_events = sum(len(v) for v in events_by_id.values())
+        payload = {
+            "total_ids": total_ids,
+            "total_events": total_events,
+        }
+        if args.json:
+            json.dump(payload, sys.stdout, indent=2, sort_keys=True)
+            sys.stdout.write("\n")
+        else:
+            print(f"Total IDs: {total_ids}")
+            print(f"Total events: {total_events}")
+        sys.exit(0)
 
 
 def audit_all_ids(
