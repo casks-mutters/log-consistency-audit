@@ -22,7 +22,19 @@ def keccak_json(obj: Any) -> str:
     return "0x" + Web3.keccak(data).hex()
 
 def canonical_log(log: Dict[str, Any]) -> Dict[str, Any]:
-    """Strip non-deterministic keys and normalize types."""
+    """
+    Strip non-deterministic keys and normalize types for comparison.
+
+    Keeps only:
+      - address
+      - blockNumber (int)
+      - transactionHash
+      - transactionIndex (int)
+      - logIndex (int)
+      - data
+      - topics (list)
+    """
+
     keep = {
         "address": log.get("address"),
         "blockNumber": int(log.get("blockNumber", 0)),
