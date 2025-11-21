@@ -15,6 +15,13 @@ def connect(url: str) -> Web3:
     if not w3.is_connected():
         print(f"❌ Failed to connect: {url}")
         sys.exit(1)
+            # Optional PoA middleware for some L2 / testnets
+    try:
+        from web3.middleware import geth_poa_middleware
+        w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+    except Exception:
+        pass
+
     return w3
 
 def keccak_json(obj: Any) -> str:
