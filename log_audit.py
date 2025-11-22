@@ -132,6 +132,7 @@ def main():
 
     if wA.eth.chain_id != wB.eth.chain_id:
         print("⚠️ chainId mismatch between RPC A and B — logs are not comparable.")
+    sys.exit(3)
 
     print(f"🔍 Fetching logs from blocks [{from_block}, {to_block}]…")
     t0 = time.monotonic()
