@@ -433,8 +433,10 @@ def render_human(
 
     print(f"Total IDs: {total_ids}")
     print(f"Total events: {total_events}")
-    print(f"Total inconsistencies: {total_incs}")
+     print(f"Total inconsistencies: {total_incs}")
     print()
+    # Note: if you want the actual list, thread it into this function later.
+
 
     if not inconsistencies:
         print("✅ No inconsistencies found.")
