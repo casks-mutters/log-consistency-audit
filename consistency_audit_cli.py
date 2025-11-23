@@ -18,6 +18,7 @@ ISO8601_Z_FMT = "%Y-%m-%dT%H:%M:%SZ"
 
 @dataclasses.dataclass
 class LogEvent:
+    """Single parsed log event for a given ID."""
     raw_line: str
     source_file: str
     line_no: int
@@ -28,10 +29,12 @@ class LogEvent:
 
 @dataclasses.dataclass
 class Inconsistency:
+    """A single detected state-transition inconsistency for one ID."""
     id_value: str
     type: str  # e.g. "out_of_order", "duplicate", "unknown_state", "regression"
     message: str
     events: List[LogEvent]
+
 
 
 def parse_args() -> argparse.Namespace:
