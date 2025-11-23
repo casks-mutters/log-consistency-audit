@@ -15,7 +15,7 @@ from typing import Dict, List, Optional, Any, Iterable, Tuple
 ISO8601_FMT = "%Y-%m-%dT%H:%M:%S%z"
 ISO8601_Z_FMT = "%Y-%m-%dT%H:%M:%SZ"
 
-
+ total_ids = len(events_by_id)
 @dataclasses.dataclass
 class LogEvent:
     raw_line: str
@@ -44,6 +44,11 @@ def parse_args() -> argparse.Namespace:
         nargs="+",
         required=True,
         help="One or more log files (or glob patterns) to inspect.",
+    )
+    parser.add_argument(
+        "--no-color",
+        action="store_true",
+        help="Disable emojis / decorative characters in text output.",
     )
 
     parser.add_argument(
