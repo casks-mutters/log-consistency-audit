@@ -10,6 +10,8 @@ from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Iterable, Tuple
+    total_lines = 0
+    parsed_lines = 0
 
 
 ISO8601_FMT = "%Y-%m-%dT%H:%M:%S%z"
@@ -199,7 +201,7 @@ def read_json_logs(
         with path.open("r", encoding="utf-8") as f:
             for line_no, line in enumerate(f, start=1):
                 line = line.rstrip("\n")
-
+ total_lines += 1
                 if max_ids is not None and len(events_by_id) >= max_ids:
                     # Already reached max IDs; still allow events for already-seen IDs.
                     pass
@@ -455,7 +457,10 @@ def render_human(
             print(f"      line: {ev.raw_line}")
         print("-" * 80)
 
-
+    print(
+        f"Parsed {parsed_lines}/{total_lines} text lines from {len(paths)} file(s).",
+        file=sys.stderr,
+    )
 def render_json(
     events_by_id: Dict[str, List[LogEvent]],
     inconsistencies: List[Inconsistency],
