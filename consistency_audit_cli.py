@@ -497,6 +497,7 @@ def main() -> None:
     if not paths:
         print("ERROR: no log files matched the provided patterns.", file=sys.stderr)
         sys.exit(1)
+    print(f"Scanning {len(paths)} log file(s).", file=sys.stderr)
 
     order_map, ordered_states = build_state_order(args.allowed_order)
     if not order_map:
