@@ -9,7 +9,16 @@ from web3 import Web3
 
 DEFAULT_RPC_A = os.getenv("RPC_A", "https://mainnet.infura.io/v3/your_api_key")
 DEFAULT_RPC_B = os.getenv("RPC_B", "https://eth.llamarpc.com")
-
+NETWORKS = {
+    1: "Ethereum Mainnet",
+    11155111: "Sepolia Testnet",
+    10: "Optimism",
+    137: "Polygon",
+    42161: "Arbitrum One",
+}
+def network_name(chain_id: int) -> str:
+    return NETWORKS.get(chain_id, f"Unknown (chainId={chain_id})")
+    
 def connect(url: str) -> Web3:
     w3 = Web3(Web3.HTTPProvider(url, request_kwargs={"timeout": 20}))
     if not w3.is_connected():
@@ -127,8 +136,9 @@ def main():
     wA = connect(rpcA)
     wB = connect(rpcB)
 
-    print(f"🌐 RPC A: {rpcA} (chainId={wA.eth.chain_id})")
-    print(f"🌐 RPC B: {rpcB} (chainId={wB.eth.chain_id})")
+     print(f"🌐 RPC A: {short_url(rpcA)} (chainId={wA.eth.chain_id}, {network_name(wA.eth.chain_id)})")
+    print(f"🌐 RPC B: {short_url(rpcB)} (chainId={wB.eth.chain_id}, {network_name(wB.eth.chain_id)})")
+
 
     if wA.eth.chain_id != wB.eth.chain_id:
         print("⚠️ chainId mismatch between RPC A and B — logs are not comparable.")
