@@ -426,7 +426,9 @@ def audit_all_ids(
 def render_human(
     events_by_id: Dict[str, List[LogEvent]],
     inconsistencies: List[Inconsistency],
+    summary_only: bool = False,
 ) -> None:
+
     total_ids = len(events_by_id)
     total_events = sum(len(v) for v in events_by_id.values())
     total_incs = len(inconsistencies)
@@ -439,6 +441,11 @@ def render_human(
     if not inconsistencies:
         print("✅ No inconsistencies found.")
         return
+
+    if summary_only:
+        # Caller requested no detailed listing.
+        return
+
 
     print("❌ Inconsistencies:")
     print("-" * 80)
@@ -538,7 +545,8 @@ def main() -> None:
     if args.json:
         render_json(events_by_id, inconsistencies)
     else:
-        render_human(events_by_id, inconsistencies)
+        render_human(events_by_id, inconsistencies, summary_only=args.summary_only)
+
 
     if inconsistencies:
         sys.exit(3)
