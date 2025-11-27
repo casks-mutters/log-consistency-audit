@@ -498,10 +498,14 @@ def main() -> None:
         print("ERROR: no log files matched the provided patterns.", file=sys.stderr)
         sys.exit(1)
 
-    order_map, ordered_states = build_state_order(args.allowed_order)
+     order_map, ordered_states = build_state_order(args.allowed_order)
     if not order_map:
-        print("ERROR: --allowed-order produced no valid states.", file=sys.stderr)
+        print(
+            f"ERROR: --allowed-order produced no valid states (input was: {args.allowed_order!r}).",
+            file=sys.stderr,
+        )
         sys.exit(1)
+
 
     # Read logs
     if args.format == "json":
