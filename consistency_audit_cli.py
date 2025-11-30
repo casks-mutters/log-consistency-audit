@@ -45,6 +45,11 @@ def parse_args() -> argparse.Namespace:
         required=True,
         help="One or more log files (or glob patterns) to inspect.",
     )
+    parser.add_argument(
+        "--show-config",
+        action="store_true",
+        help="Print effective configuration (arguments) before running.",
+    )
 
     parser.add_argument(
         "--format",
@@ -492,6 +497,9 @@ def render_json(
 
 def main() -> None:
     args = parse_args()
+    if args.show_config:
+        print("Effective configuration:", file=sys.stderr)
+        print(json.dumps(vars(args), indent=2, sort_keys=True), file=sys.stderr)
 
     paths = expand_files(args.logs)
     if not paths:
