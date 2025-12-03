@@ -409,16 +409,23 @@ def audit_all_ids(
     order_map: Dict[str, int],
     allowed_states: List[str],
     ignore_duplicates: bool,
+    strict_order: bool,
+    id_filter: Optional[re.Pattern[str]] = None,
 ) -> List[Inconsistency]:
+
     all_inconsistencies: List[Inconsistency] = []
-    for id_value, events in events_by_id.items():
+      for id_value, events in events_by_id.items():
+        if id_filter is not None and not id_filter.search(id_value):
+            continue
         incs = audit_id_sequence(
             id_value=id_value,
             events=events,
             order_map=order_map,
             allowed_states=allowed_states,
             ignore_duplicates=ignore_duplicates,
+            strict_order=strict_order,
         )
+
         all_inconsistencies.extend(incs)
     return all_inconsistencies
 
@@ -533,7 +540,10 @@ def main() -> None:
         order_map=order_map,
         allowed_states=ordered_states,
         ignore_duplicates=args.ignore_duplicates,
+        strict_order=args.strict_order,
+        id_filter=id_filter_re,
     )
+
 
     if args.json:
         render_json(events_by_id, inconsistencies)
