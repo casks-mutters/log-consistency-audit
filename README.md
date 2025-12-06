@@ -18,3 +18,12 @@ Useful for:
 
    ```bash
    pip install web3
+
+   
+ ## Usage
+   
+### log_audit.py
+
+### quick_audit.py
+
+### consistency_audit_cli.py
