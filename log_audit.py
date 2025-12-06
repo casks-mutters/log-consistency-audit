@@ -103,12 +103,6 @@ def main():
     rpcB = args.rpcB
 
 
-    from_block = int(sys.argv[1])
-    to_block = int(sys.argv[2])
-    address = sys.argv[3]
-    topic0 = sys.argv[4]
-    rpcA = sys.argv[5] if len(sys.argv) > 5 else DEFAULT_RPC_A
-    rpcB = sys.argv[6] if len(sys.argv) > 6 else DEFAULT_RPC_B
 
     if from_block < 0 or to_block < 0:
         print("❌ Blocks must be ≥ 0.")
