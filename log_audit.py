@@ -88,6 +88,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("topic0", help="Topic0 (event signature) or '*' for any")
     p.add_argument("--rpcA", default=DEFAULT_RPC_A, help="RPC URL for provider A")
     p.add_argument("--rpcB", default=DEFAULT_RPC_B, help="RPC URL for provider B")
+    p.add_argument(
+    "--json",
+    action="store_true",
+    help="Emit JSON summary instead of human-readable output.",
+)
     return p
 
 
@@ -143,14 +148,27 @@ def main():
     print(f"📦 RPC B logs: {len(logs_b)}")
 
     ok, diff = compare_logs(logs_a, logs_b)
+if args.json:
+    payload = {
+        "ok": ok,
+        "summary": {
+            "fromBlock": from_block,
+            "toBlock": to_block,
+            "address": address,
+            "topic0": topic0,
+            "lenA": len(logs_a),
+            "lenB": len(logs_b),
+        },
+        "roots": {
+            "a": keccak_json(logs_a),
+            "b": keccak_json(logs_b),
+        },
+        "diff": diff,
+    }
+    print(json.dumps(payload, indent=2, sort_keys=True))
+else:
+    # existing human-readable prints
 
-    if ok:
-        root_logs = keccak_json(logs_a)
-        print("✅ Logs match exactly across both providers.")
-        print(f"🔏 Log set root: {root_logs}")
-    else:
-        print("❌ Log divergence detected!")
-        print(json.dumps(diff, indent=2))
 
     print(f"⏱️ Elapsed: {elapsed:.2f}s")
 
