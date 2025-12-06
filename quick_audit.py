@@ -46,8 +46,8 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    rpc_a = args.rpc_a or os.getenv("LOG_RPC_A")
-    rpc_b = args.rpc_b or os.getenv("LOG_RPC_B")
+   rpc_a = args.rpc_a or os.getenv("RPC_A")
+rpc_b = args.rpc_b or os.getenv("RPC_B")
 
     if not rpc_a or not rpc_b:
         print(
@@ -64,18 +64,20 @@ def main() -> None:
         print(f"ERROR: log_audit.py not found next to {__file__}", file=sys.stderr)
         sys.exit(1)
 
-    cmd = [
-        sys.executable,
-        str(log_audit_path),
-        "--rpc-a",
-        rpc_a,
-        "--rpc-b",
-        rpc_b,
-        "--from-block",
-        str(args.from_block),
-        "--to-block",
-        str(args.to_block),
-    ]
+ address = args.address or "*"
+topic0 = args.topic0 or "*"
+
+cmd = [
+    sys.executable,
+    str(log_audit_path),
+    str(args.from_block),
+    str(args.to_block),
+    address,
+    topic0,
+    "--rpcA", rpc_a,
+    "--rpcB", rpc_b,
+]
+
 
     if args.address:
         cmd += ["--address", args.address]
