@@ -48,6 +48,7 @@ def fetch_logs(w3: Web3, from_block: int, to_block: int, address: str, topic0: s
     if topic0 != "*":
         flt["topics"] = [topic0]
 
+    time.sleep(0.05)
     try:
         logs = w3.eth.get_logs(flt)
     except Exception as e:
