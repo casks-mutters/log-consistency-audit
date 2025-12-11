@@ -17,6 +17,10 @@ def connect(url: str) -> Web3:
         sys.exit(1)
     return w3
 
+def connect(url: str) -> Web3:
+    if " " in url: print(f"⚠️ RPC URL contains whitespace: {url}")
+    w3 = Web3(Web3.HTTPProvider(url, request_kwargs={"timeout": 20}))
+
 def keccak_json(obj: Any) -> str:
     data = json.dumps(obj, sort_keys=True, separators=(",", ":")).encode()
     return "0x" + Web3.keccak(data).hex()
