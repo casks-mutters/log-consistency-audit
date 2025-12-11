@@ -55,7 +55,9 @@ def fetch_logs(w3: Web3, from_block: int, to_block: int, address: str, topic0: s
         if "429" in str(e) or "rate" in str(e).lower(): time.sleep(1.0)
         print(f"⚠️ get_logs error on {w3.provider.endpoint_uri}: {e}")
         return []
-    return [canonical_log(l) for l in logs]
+        logs = [canonical_log(l) for l in logs]
+        logs.sort(key=lambda l: (l["blockNumber"], l["transactionIndex"], l["logIndex"]))
+        return logs
 
 def compare_logs(logs_a: List[Dict[str, Any]], logs_b: List[Dict[str, Any]]):
     if logs_a == logs_b:
